@@ -132,7 +132,7 @@ export function AwsPracticeExam() {
   const updateScore = (answers: string[][]) => {
     let newScore = 0;
     for (let i = 0; i < questions.length; i++) {
-      if (isAnswerCorrect(i)) {
+      if (isAnswerCorrect(i, answers)) {
         newScore++;
       }
     }
@@ -152,8 +152,8 @@ export function AwsPracticeExam() {
     setShowResults(true);
   };
 
-  const isAnswerCorrect = (questionIndex: number) => {
-    const userAnswerSet = new Set(userAnswers[questionIndex]);
+  const isAnswerCorrect = (questionIndex: number, answers: string[][]) => {
+    const userAnswerSet = new Set(answers[questionIndex]);
     const correctAnswerSet = new Set(questions[questionIndex].correctAnswers);
     if (questions[questionIndex].correctAnswers.length === 1) {
       // Single answer question
@@ -237,7 +237,9 @@ export function AwsPracticeExam() {
                   </div>
                 ))}
                 <p className="mt-2 text-sm">
-                  {isAnswerCorrect(index) ? "Correct" : "Incorrect"}
+                  {isAnswerCorrect(index, userAnswers)
+                    ? "Correct"
+                    : "Incorrect"}
                 </p>
               </div>
             ))}
