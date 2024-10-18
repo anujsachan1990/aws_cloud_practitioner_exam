@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -22,7 +22,7 @@ interface Question {
   correctAnswers: string[];
 }
 
-export function AwsPracticeExam() {
+function ExamContent() {
   const searchParams = useSearchParams();
   const examNumber = searchParams.get("exam") || "1";
 
@@ -309,5 +309,13 @@ export function AwsPracticeExam() {
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+export function AwsPracticeExam() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ExamContent />
+    </Suspense>
   );
 }
