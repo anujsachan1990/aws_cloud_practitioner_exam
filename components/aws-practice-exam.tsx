@@ -14,6 +14,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSearchParams } from "next/navigation";
 
 interface Question {
   question: string;
@@ -22,6 +23,9 @@ interface Question {
 }
 
 export function AwsPracticeExam() {
+  const searchParams = useSearchParams();
+  const examNumber = searchParams.get("exam") || "1";
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [userAnswers, setUserAnswers] = useState<string[][]>([]);
@@ -31,8 +35,8 @@ export function AwsPracticeExam() {
   const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes in seconds
 
   useEffect(() => {
-    fetchExamData();
-  }, []);
+    fetchExamData(examNumber);
+  }, [examNumber]);
 
   useEffect(() => {
     if (!loading && !showResults) {
@@ -52,10 +56,10 @@ export function AwsPracticeExam() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, showResults]);
 
-  const fetchExamData = async () => {
+  const fetchExamData = async (examNum: string) => {
     try {
       const response = await fetch(
-        "https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-1.md"
+        `https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`
       );
       const data = await response.json();
       const content = atob(data.content);
