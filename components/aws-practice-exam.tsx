@@ -64,13 +64,23 @@ function ExamContent() {
       const data = await response.json();
       const content = atob(data.content);
       const parsedQuestions = parseMarkdown(content);
-      setQuestions(parsedQuestions);
-      setUserAnswers(new Array(parsedQuestions.length).fill([]));
+      const shuffledQuestions = shuffleArray(parsedQuestions);
+      setQuestions(shuffledQuestions);
+      setUserAnswers(new Array(shuffledQuestions.length).fill([]));
       setLoading(false);
     } catch (error) {
       console.error("Error fetching exam data:", error);
       setLoading(false);
     }
+  };
+
+  const shuffleArray = (array: Question[]): Question[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
   };
 
   const parseMarkdown = (markdown: string): Question[] => {
