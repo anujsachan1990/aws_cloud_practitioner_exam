@@ -173,7 +173,7 @@ export function AwsPracticeExam() {
       // Multi answer question
       return (
         userAnswerSet.size === correctAnswerSet.size &&
-        [...userAnswerSet].every(
+        Array.from(userAnswerSet).every(
           (answer) =>
             questions[questionIndex].options.findIndex(
               (option) =>
