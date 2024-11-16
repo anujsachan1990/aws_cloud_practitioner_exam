@@ -274,9 +274,9 @@ function ExamContent() {
         </CardTitle>
         <div className="text-right">
           <p className="font-semibold">Time Left: {formatTime(timeLeft)}</p>
-          <p className="text-sm">
+          {/* <p className="text-sm">
             Current Score: {score}/{currentQuestion + 1}
-          </p>
+          </p> */}
         </div>
       </CardHeader>
       <CardContent>
