@@ -29,6 +29,19 @@ interface Question {
   correctAnswers: string[];
 }
 
+interface ExamAttempt {
+  examNumber: string;
+  score: number;
+  totalQuestions: number;
+  date: string;
+  answers: string[][];
+}
+
+interface UserData {
+  name: string;
+  attempts: Record<string, ExamAttempt>;
+}
+
 function ExamContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,10 +54,25 @@ function ExamContent() {
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(50 * 60); // 50 minutes in seconds
+  const [userName, setUserName] = useState<string>("");
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [showAttempts, setShowAttempts] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchExamData(examNumber);
-  }, [examNumber]);
+    const userData = localStorage.getItem("awsExamUserData");
+    if (userData) {
+      const { name } = JSON.parse(userData);
+      setUserName(name);
+      setIsRegistered(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isRegistered && examNumber) {
+      fetchExamData(examNumber);
+    }
+  }, [isRegistered, examNumber]);
 
   useEffect(() => {
     if (!loading && !showResults) {
@@ -65,10 +93,14 @@ function ExamContent() {
   }, [loading, showResults]);
 
   const fetchExamData = async (examNum: string) => {
+    setLoading(true);
     try {
       const response = await fetch(
         `https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`
       );
+      if (!response.ok) {
+        throw new Error("Failed to fetch exam data");
+      }
       const data = await response.json();
       const content = atob(data.content);
       const parsedQuestions = parseMarkdown(content);
@@ -217,6 +249,7 @@ function ExamContent() {
   const endExam = () => {
     updateScore(userAnswers);
     setShowResults(true);
+    saveAttempt();
   };
 
   const isAnswerCorrect = (questionIndex: number, userAnswers: string[][]) => {
@@ -254,70 +287,235 @@ function ExamContent() {
     router.push(`?exam=${value}`);
   };
 
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    const userData: UserData = {
+      name: userName,
+      attempts: {},
+    };
+    localStorage.setItem("awsExamUserData", JSON.stringify(userData));
+    setIsRegistered(true);
+  };
+
+  const saveAttempt = () => {
+    const userData = JSON.parse(
+      localStorage.getItem("awsExamUserData") || "{}"
+    );
+    const attempt: ExamAttempt = {
+      examNumber,
+      score,
+      totalQuestions: questions.length,
+      date: new Date().toISOString(),
+      answers: userAnswers,
+    };
+
+    userData.attempts = userData.attempts || {};
+    userData.attempts[`${examNumber}-${Date.now()}`] = attempt;
+    localStorage.setItem("awsExamUserData", JSON.stringify(userData));
+  };
+
+  const resetUserData = () => {
+    localStorage.removeItem("awsExamUserData");
+    setUserName("");
+    setIsRegistered(false);
+    setShowAttempts(false);
+  };
+
+  const AttemptsHistory = () => {
+    const userData = JSON.parse(
+      localStorage.getItem("awsExamUserData") || "{}"
+    ) as UserData;
+    const attempts = userData.attempts || {};
+
+    return (
+      <Card className="w-full max-w-4xl mx-auto mt-8">
+        <CardHeader>
+          <CardTitle>Your Exam History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
+            {Object.entries(attempts).map(([key, attempt]) => {
+              const typedAttempt = attempt as ExamAttempt;
+              return (
+                <div key={key} className="mb-6 pb-4 border-b">
+                  <p className="font-semibold">
+                    Exam {typedAttempt.examNumber}
+                  </p>
+                  <p>
+                    Score: {typedAttempt.score}/{typedAttempt.totalQuestions}
+                  </p>
+                  <p>
+                    Date: {new Date(typedAttempt.date).toLocaleDateString()}
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={async () => {
+                      try {
+                        setLoading(true);
+                        await fetchExamData(typedAttempt.examNumber);
+                        setUserAnswers(typedAttempt.answers);
+                        setScore(typedAttempt.score);
+                        setShowResults(true);
+                        setShowAttempts(false);
+                      } catch (error) {
+                        console.error("Error loading review:", error);
+                        // Optionally show error message
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    className="mt-2"
+                  >
+                    Review Answers
+                  </Button>
+                </div>
+              );
+            })}
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  if (error) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto mt-8">
+        <CardContent className="flex items-center justify-center h-64">
+          <span className="text-red-500">{error}</span>
+          <Button
+            onClick={() => {
+              setError(null);
+              fetchExamData(examNumber);
+            }}
+          >
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4">
-      {loading ? (
+      {!isRegistered ? (
+        <Card className="w-full max-w-md mx-auto mt-8">
+          <CardHeader>
+            <CardTitle>Register for AWS Practice Exam</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div>
+                <Label htmlFor="name">Your Name</Label>
+                <input
+                  id="name"
+                  type="text"
+                  value={userName}
+                  onChange={(e) => setUserName(e.target.value)}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+              <Button type="submit">Start Practice</Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : showAttempts ? (
+        <>
+          <div className="flex justify-between max-w-4xl mx-auto mb-4">
+            <Button onClick={() => setShowAttempts(false)}>Back to Exam</Button>
+            <Button variant="destructive" onClick={resetUserData}>
+              Reset All Data
+            </Button>
+          </div>
+          <AttemptsHistory />
+        </>
+      ) : loading ? (
         <Card className="w-full max-w-4xl mx-auto mt-8">
           <CardContent className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin" />
             <span className="ml-2">Loading exam questions...</span>
           </CardContent>
         </Card>
-      ) : showResults ? (
+      ) : questions.length === 0 ? (
         <Card className="w-full max-w-4xl mx-auto mt-8">
-          <CardHeader>
-            <CardTitle>Exam Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-semibold mb-4">
-              Your score: {score} out of {questions.length}
-            </p>
-            <p className="mb-4">
-              Percentage: {((score / questions.length) * 100).toFixed(2)}%
-            </p>
-            <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
-              {questions.map((question, index) => (
-                <div key={index} className="mb-6 pb-4 border-b">
-                  <p className="font-semibold mb-2">
-                    Question {index + 1}: {question.question}
-                  </p>
-                  {question.options.map((option, optionIndex) => (
-                    <div
-                      key={optionIndex}
-                      className="flex items-center space-x-2 mb-1"
-                    >
-                      <div
-                        className={`w-4 h-4 rounded-full ${
-                          question.correctAnswers.includes(option)
-                            ? "bg-green-500"
-                            : userAnswers[index]?.includes(option)
-                            ? "bg-red-500"
-                            : "bg-gray-200"
-                        }`}
-                      ></div>
-                      <span
-                        className={
-                          question.correctAnswers.includes(option)
-                            ? "font-semibold"
-                            : ""
-                        }
-                      >
-                        {option}
-                      </span>
-                    </div>
-                  ))}
-                  <p className="mt-2 text-sm">
-                    {isAnswerCorrect(index, userAnswers)
-                      ? "Correct"
-                      : "Incorrect"}
-                  </p>
-                </div>
-              ))}
-            </ScrollArea>
+          <CardContent className="flex items-center justify-center h-64">
+            <span>No questions available. Please try again.</span>
           </CardContent>
         </Card>
+      ) : showResults ? (
+        <>
+          <div className="flex justify-between max-w-4xl mx-auto mb-4">
+            <Button onClick={() => setShowAttempts(true)}>View History</Button>
+            <Button variant="destructive" onClick={resetUserData}>
+              Reset All Data
+            </Button>
+          </div>
+          <Card className="w-full max-w-4xl mx-auto mt-8">
+            <CardHeader>
+              <CardTitle>Exam Results</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-lg font-semibold mb-4">
+                Your score: {score} out of {questions.length}
+              </p>
+              <p className="mb-4">
+                Percentage: {((score / questions.length) * 100).toFixed(2)}%
+              </p>
+              <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
+                {questions.map((question, index) => (
+                  <div key={index} className="mb-6 pb-4 border-b">
+                    <p className="font-semibold mb-2">
+                      Question {index + 1}: {question.question}
+                    </p>
+                    {question.options.map((option, optionIndex) => (
+                      <div
+                        key={optionIndex}
+                        className="flex items-center space-x-2 mb-1"
+                      >
+                        <div
+                          className={`w-4 h-4 rounded-full ${
+                            question.correctAnswers.includes(option)
+                              ? "bg-green-500"
+                              : userAnswers[index]?.includes(option)
+                              ? "bg-red-500"
+                              : "bg-gray-200"
+                          }`}
+                        ></div>
+                        <span
+                          className={
+                            question.correctAnswers.includes(option)
+                              ? "font-semibold"
+                              : ""
+                          }
+                        >
+                          {option}
+                        </span>
+                      </div>
+                    ))}
+                    <p className="mt-2 text-sm">
+                      {isAnswerCorrect(index, userAnswers)
+                        ? "Correct"
+                        : "Incorrect"}
+                    </p>
+                  </div>
+                ))}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </>
       ) : (
         <>
+          <div className="flex justify-between max-w-4xl mx-auto mb-4">
+            <div className="flex items-center gap-4">
+              <span>Welcome, {userName}!</span>
+              <Button onClick={() => setShowAttempts(true)}>
+                View History
+              </Button>
+            </div>
+            <Button variant="destructive" onClick={resetUserData}>
+              Reset All Data
+            </Button>
+          </div>
           {/* Exam Header */}
           <div className="text-center mb-8">
             <img
