@@ -192,30 +192,30 @@ function ExamContent() {
   };
 
   const isAnswerCorrect = (questionIndex: number, answers: string[][]) => {
-    const userAnswerSet = new Set(answers[questionIndex]);
-    const correctAnswerSet = new Set(questions[questionIndex].correctAnswers);
-    if (questions[questionIndex].correctAnswers.length === 1) {
+    const userAnswers = answers[questionIndex] || [];
+    const correctAnswers = questions[questionIndex].correctAnswers;
+
+    if (correctAnswers.length === 1) {
       // Single answer question
       return (
-        userAnswerSet.size === 1 &&
-        questions[questionIndex].options.findIndex(
-          (option) =>
-            option.startsWith(questions[questionIndex].correctAnswers[0]) &&
-            userAnswerSet.has(option)
-        ) !== -1
+        userAnswers.length === 1 &&
+        correctAnswers.some((correct) =>
+          userAnswers.some((answer) => answer.startsWith(correct.split(".")[0]))
+        )
       );
     } else {
-      // Multi answer question
+      // Multiple answer question
+      // Convert both arrays to just the letter part (A, B, C, etc.)
+      const userLetters = userAnswers.map((answer) => answer.split(".")[0]);
+      const correctLetters = correctAnswers.map(
+        (answer) => answer.split(".")[0]
+      );
+
+      // Check if arrays have same length and all correct letters are selected
       return (
-        userAnswerSet.size === correctAnswerSet.size &&
-        Array.from(userAnswerSet).every(
-          (answer) =>
-            questions[questionIndex].options.findIndex(
-              (option) =>
-                option.startsWith(answer) &&
-                correctAnswerSet.has(answer.split(".")[0])
-            ) !== -1
-        )
+        userLetters.length === correctLetters.length &&
+        correctLetters.every((letter) => userLetters.includes(letter)) &&
+        userLetters.every((letter) => correctLetters.includes(letter))
       );
     }
   };
