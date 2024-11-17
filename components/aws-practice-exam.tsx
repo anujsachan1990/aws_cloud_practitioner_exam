@@ -142,16 +142,16 @@ function ExamContent() {
         }
 
         // Convert letter answers to full option text and ensure unique answers
-        currentQuestion.correctAnswers = [
-          ...new Set(
+        currentQuestion.correctAnswers = Array.from(
+          new Set(
             answers.map((letter) => {
               const fullOption = currentQuestion.options?.find((opt) =>
                 opt.startsWith(`${letter.trim()}.`)
               );
               return fullOption || letter.trim();
             })
-          ),
-        ];
+          )
+        );
         isCollectingOptions = false;
       }
     }
@@ -253,77 +253,6 @@ function ExamContent() {
   const handleExamChange = (value: string) => {
     router.push(`?exam=${value}`);
   };
-
-  if (loading) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto mt-8">
-        <CardContent className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading exam questions...</span>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (showResults) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto mt-8">
-        <CardHeader>
-          <CardTitle>Exam Results</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-lg font-semibold mb-4">
-            Your score: {score} out of {questions.length}
-          </p>
-          <p className="mb-4">
-            Percentage: {((score / questions.length) * 100).toFixed(2)}%
-          </p>
-          <ScrollArea className="h-[60vh] w-full rounded-md border p-4">
-            {questions.map((question, index) => (
-              <div key={index} className="mb-6 pb-4 border-b">
-                <p className="font-semibold mb-2">
-                  Question {index + 1}: {question.question}
-                </p>
-                {question.options.map((option, optionIndex) => (
-                  <div
-                    key={optionIndex}
-                    className="flex items-center space-x-2 mb-1"
-                  >
-                    <div
-                      className={`w-4 h-4 rounded-full ${
-                        question.correctAnswers.includes(option)
-                          ? "bg-green-500"
-                          : userAnswers[index]?.includes(option)
-                          ? "bg-red-500"
-                          : "bg-gray-200"
-                      }`}
-                    ></div>
-                    <span
-                      className={
-                        question.correctAnswers.includes(option)
-                          ? "font-semibold"
-                          : ""
-                      }
-                    >
-                      {option}
-                    </span>
-                  </div>
-                ))}
-                <p className="mt-2 text-sm">
-                  {isAnswerCorrect(index, userAnswers)
-                    ? "Correct"
-                    : "Incorrect"}
-                </p>
-              </div>
-            ))}
-          </ScrollArea>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const question = questions[currentQuestion];
-  const isMultiAnswer = question.correctAnswers.length > 1;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4">
@@ -432,10 +361,12 @@ function ExamContent() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <p className="mb-6 text-lg">{question.question}</p>
-              {isMultiAnswer ? (
+              <p className="mb-6 text-lg">
+                {questions[currentQuestion].question}
+              </p>
+              {questions[currentQuestion].correctAnswers.length > 1 ? (
                 <div className="space-y-4">
-                  {question.options.map((option, index) => (
+                  {questions[currentQuestion].options.map((option, index) => (
                     <div
                       key={index}
                       className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
@@ -461,7 +392,7 @@ function ExamContent() {
                   value={userAnswers[currentQuestion]?.[0]}
                   className="space-y-4"
                 >
-                  {question.options.map((option, index) => (
+                  {questions[currentQuestion].options.map((option, index) => (
                     <div
                       key={index}
                       className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
