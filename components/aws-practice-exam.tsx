@@ -404,7 +404,7 @@ function ExamContent() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="name">Your Name</Label>
                 <input
                   id="name"
@@ -415,7 +415,24 @@ function ExamContent() {
                   required
                 />
               </div>
-              <Button type="submit">Start Practice</Button>
+              <div className="space-y-2">
+                <Label htmlFor="exam">Select Exam</Label>
+                <Select value={examNumber} onValueChange={handleExamChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select exam" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        Practice Exam {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button type="submit" className="w-full">
+                Start Practice
+              </Button>
             </form>
           </CardContent>
         </Card>
@@ -526,24 +543,9 @@ function ExamContent() {
             <h1 className="text-2xl font-bold text-[#232f3e] mb-2">
               AWS Certified Cloud Practitioner
             </h1>
-            <h2 className="text-lg text-gray-600 mb-4">Exam Code: CLF-02</h2>
-
-            {/* Exam Selector */}
-            <div className="flex justify-center items-center gap-2">
-              <span className="text-gray-600">Select Exam:</span>
-              <Select value={examNumber} onValueChange={handleExamChange}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select exam" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {Array.from({ length: 12 }, (_, i) => (
-                    <SelectItem key={i + 1} value={(i + 1).toString()}>
-                      Practice Exam {i + 1}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <h2 className="text-lg text-gray-600 mb-4">
+              Practice Exam {examNumber}
+            </h2>
           </div>
 
           {/* Exam Card */}
