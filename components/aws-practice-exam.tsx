@@ -66,14 +66,8 @@ function ExamContent() {
 
   const fetchExamData = async (examNum: string) => {
     try {
-      const headers = {
-        Authorization: `token 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`,
-        Accept: "application/vnd.github.v3.raw",
-      };
-
       const response = await fetch(
-        `https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`,
-        { headers }
+        `https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`
       );
       const data = await response.json();
       const content = atob(data.content);
@@ -307,17 +301,6 @@ function ExamContent() {
               </div>
             ))}
           </ScrollArea>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!questions.length || !questions[currentQuestion]) {
-    return (
-      <Card className="w-full max-w-4xl mx-auto mt-8">
-        <CardContent className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading exam questions...</span>
         </CardContent>
       </Card>
     );
