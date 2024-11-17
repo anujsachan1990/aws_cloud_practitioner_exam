@@ -87,32 +87,50 @@ function ExamContent() {
     const lines = markdown.split("\n");
     const parsedQuestions: Question[] = [];
     let currentQuestion: Partial<Question> = {};
+    let isCollectingOptions = false;
 
     for (const line of lines) {
-      if (line.match(/^\d+\./)) {
+      // Match question number and text
+      const questionMatch = line.match(/^\d+\.\s(.+)/);
+      if (questionMatch) {
         if (currentQuestion.question) {
           parsedQuestions.push(currentQuestion as Question);
         }
         currentQuestion = {
-          question: line.replace(/^\d+\.\s*/, ""),
+          question: questionMatch[1].replace(/<br\/>/g, " ").trim(),
           options: [],
           correctAnswers: [],
         };
-      } else if (line.startsWith("    - ")) {
-        currentQuestion.options?.push(line.replace("    - ", ""));
-      } else if (line.includes("Correct Answer:")) {
-        const answerPart = line.replace("Correct Answer:", "").trim();
-        const answers = answerPart.includes(",")
-          ? answerPart.split(",").map((a) => a.trim())
-          : answerPart.split("").map((letter) => letter.trim());
+        isCollectingOptions = true;
+        continue;
+      }
 
+      // Match options (- A. Some option)
+      if (isCollectingOptions && line.match(/^\s*-\s[A-E]\./)) {
+        const option = line.replace(/^\s*-\s/, "").trim();
+        currentQuestion.options?.push(option);
+      }
+
+      // Match correct answer
+      if (line.includes("Correct Answer:")) {
+        const answerLine = line.replace("Correct Answer:", "").trim();
+        // Handle both single answers and multiple answers (like "AC")
+        const answers = answerLine
+          .split("")
+          .filter((char) => /[A-E]/.test(char));
+
+        // Convert letter answers to full option text
         currentQuestion.correctAnswers = answers.map((letter) => {
-          const optionIndex = letter.charCodeAt(0) - 65;
-          return currentQuestion.options?.[optionIndex] || letter;
+          const fullOption = currentQuestion.options?.find((opt) =>
+            opt.startsWith(`${letter}.`)
+          );
+          return fullOption || letter;
         });
+        isCollectingOptions = false;
       }
     }
 
+    // Add the last question
     if (currentQuestion.question) {
       parsedQuestions.push(currentQuestion as Question);
     }
