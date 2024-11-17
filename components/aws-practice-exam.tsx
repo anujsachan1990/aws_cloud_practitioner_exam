@@ -100,9 +100,16 @@ function ExamContent() {
         };
       } else if (line.startsWith("    - ")) {
         currentQuestion.options?.push(line.replace("    - ", ""));
-      } else if (line.includes("Correct answer:")) {
-        const answers = line.replace("Correct answer:", "").trim().split(",");
-        currentQuestion.correctAnswers = answers.map((answer) => answer.trim());
+      } else if (line.includes("Correct Answer:")) {
+        const answerPart = line.replace("Correct Answer:", "").trim();
+        const answers = answerPart.includes(",")
+          ? answerPart.split(",").map((a) => a.trim())
+          : answerPart.split("").map((letter) => letter.trim());
+
+        currentQuestion.correctAnswers = answers.map((letter) => {
+          const optionIndex = letter.charCodeAt(0) - 65;
+          return currentQuestion.options?.[optionIndex] || letter;
+        });
       }
     }
 
