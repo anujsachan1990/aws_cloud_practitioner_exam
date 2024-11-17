@@ -14,7 +14,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Question {
   question: string;
@@ -23,6 +30,7 @@ interface Question {
 }
 
 function ExamContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const examNumber = searchParams.get("exam") || "1";
 
@@ -58,8 +66,14 @@ function ExamContent() {
 
   const fetchExamData = async (examNum: string) => {
     try {
+      const headers = {
+        Authorization: `token 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`,
+        Accept: "application/vnd.github.v3.raw",
+      };
+
       const response = await fetch(
-        `https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`
+        `https://api.github.com/repos/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`,
+        { headers }
       );
       const data = await response.json();
       const content = atob(data.content);
@@ -226,6 +240,10 @@ function ExamContent() {
     }
   };
 
+  const handleExamChange = (value: string) => {
+    router.push(`?exam=${value}`);
+  };
+
   if (loading) {
     return (
       <Card className="w-full max-w-4xl mx-auto mt-8">
@@ -289,6 +307,17 @@ function ExamContent() {
               </div>
             ))}
           </ScrollArea>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!questions.length || !questions[currentQuestion]) {
+    return (
+      <Card className="w-full max-w-4xl mx-auto mt-8">
+        <CardContent className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Loading exam questions...</span>
         </CardContent>
       </Card>
     );
@@ -371,7 +400,24 @@ function ExamContent() {
             <h1 className="text-2xl font-bold text-[#232f3e] mb-2">
               AWS Certified Cloud Practitioner
             </h1>
-            <h2 className="text-lg text-gray-600">Exam Code: CLF-02</h2>
+            <h2 className="text-lg text-gray-600 mb-4">Exam Code: CLF-02</h2>
+
+            {/* Exam Selector */}
+            <div className="flex justify-center items-center gap-2">
+              <span className="text-gray-600">Select Exam:</span>
+              <Select value={examNumber} onValueChange={handleExamChange}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select exam" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
+                  {Array.from({ length: 23 }, (_, i) => (
+                    <SelectItem key={i + 1} value={(i + 1).toString()}>
+                      Practice Exam {i + 1}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* Exam Card */}
