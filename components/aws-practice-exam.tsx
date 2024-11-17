@@ -105,7 +105,7 @@ function ExamContent() {
           parsedQuestions.push(currentQuestion as Question);
         }
         currentQuestion = {
-          question: questionMatch[1].replace(/<br\/>/g, " ").trim(),
+          question: questionMatch[1].trim(),
           options: [],
           correctAnswers: [],
         };
@@ -113,27 +113,45 @@ function ExamContent() {
         continue;
       }
 
-      // Match options (- A. Some option)
-      if (isCollectingOptions && line.match(/^\s*-\s[A-E]\./)) {
-        const option = line.replace(/^\s*-\s/, "").trim();
+      // Match options
+      const optionMatch = line.match(/^\s*-\s*([A-E]\..*)/);
+      if (isCollectingOptions && optionMatch) {
+        const option = optionMatch[1].trim();
         currentQuestion.options?.push(option);
       }
 
-      // Match correct answer
-      if (line.includes("Correct Answer:")) {
-        const answerLine = line.replace("Correct Answer:", "").trim();
-        // Handle both single answers and multiple answers (like "AC")
-        const answers = answerLine
-          .split("")
-          .filter((char) => /[A-E]/.test(char));
+      // Match correct answers - Multiple formats
+      const answerLine = line.trim();
+      if (answerLine.includes("Correct")) {
+        let answers: string[] = [];
 
-        // Convert letter answers to full option text
-        currentQuestion.correctAnswers = answers.map((letter) => {
-          const fullOption = currentQuestion.options?.find((opt) =>
-            opt.startsWith(`${letter}.`)
-          );
-          return fullOption || letter;
-        });
+        // Format 1: "Correct answer: A, B" or "Correct Answer: A, B"
+        const commaFormat = answerLine.match(
+          /Correct [Aa]nswer:\s*([A-E](?:,\s*[A-E])*)/
+        );
+        // Format 2: "Correct Answer: AC" or "Correct Answer: BE"
+        const concatenatedFormat = answerLine.match(
+          /Correct [Aa]nswer:\s*([A-E]{1,5})/
+        );
+
+        if (commaFormat) {
+          answers = commaFormat[1].split(/,\s*/);
+        } else if (concatenatedFormat) {
+          // Split the concatenated string into individual letters
+          answers = concatenatedFormat[1].split("");
+        }
+
+        // Convert letter answers to full option text and ensure unique answers
+        currentQuestion.correctAnswers = [
+          ...new Set(
+            answers.map((letter) => {
+              const fullOption = currentQuestion.options?.find((opt) =>
+                opt.startsWith(`${letter.trim()}.`)
+              );
+              return fullOption || letter.trim();
+            })
+          ),
+        ];
         isCollectingOptions = false;
       }
     }
@@ -149,23 +167,25 @@ function ExamContent() {
   const handleAnswer = (answer: string) => {
     const newUserAnswers = [...userAnswers];
     const currentAnswers = newUserAnswers[currentQuestion] || [];
+    const isMultiAnswer = questions[currentQuestion].correctAnswers.length > 1;
 
-    if (questions[currentQuestion].correctAnswers.length === 1) {
-      // Single answer question
-      newUserAnswers[currentQuestion] = [answer];
-    } else {
-      // Multi answer question
+    if (isMultiAnswer) {
+      // For multiple choice questions
       if (currentAnswers.includes(answer)) {
+        // Remove if already selected
         newUserAnswers[currentQuestion] = currentAnswers.filter(
           (a) => a !== answer
         );
       } else {
+        // Add new selection
         newUserAnswers[currentQuestion] = [...currentAnswers, answer];
       }
+    } else {
+      // For single choice questions
+      newUserAnswers[currentQuestion] = [answer];
     }
 
     setUserAnswers(newUserAnswers);
-    updateScore(newUserAnswers);
   };
 
   const handleNext = () => {
@@ -199,33 +219,29 @@ function ExamContent() {
     setShowResults(true);
   };
 
-  const isAnswerCorrect = (questionIndex: number, answers: string[][]) => {
-    const userAnswers = answers[questionIndex] || [];
+  const isAnswerCorrect = (questionIndex: number, userAnswers: string[][]) => {
+    const currentUserAnswers = userAnswers[questionIndex] || [];
     const correctAnswers = questions[questionIndex].correctAnswers;
 
-    if (correctAnswers.length === 1) {
-      // Single answer question
-      return (
-        userAnswers.length === 1 &&
-        correctAnswers.some((correct) =>
-          userAnswers.some((answer) => answer.startsWith(correct.split(".")[0]))
-        )
-      );
-    } else {
-      // Multiple answer question
-      // Convert both arrays to just the letter part (A, B, C, etc.)
-      const userLetters = userAnswers.map((answer) => answer.split(".")[0]);
-      const correctLetters = correctAnswers.map(
-        (answer) => answer.split(".")[0]
-      );
+    // Extract letters from both user answers and correct answers
+    const userLetters = currentUserAnswers
+      .map((answer) => answer.split(".")[0].trim())
+      .sort();
+    const correctLetters = correctAnswers
+      .map((answer) => answer.split(".")[0].trim())
+      .sort();
 
-      // Check if arrays have same length and all correct letters are selected
+    // For multiple choice questions, check if all correct answers are selected
+    if (correctLetters.length > 1) {
       return (
         userLetters.length === correctLetters.length &&
-        correctLetters.every((letter) => userLetters.includes(letter)) &&
-        userLetters.every((letter) => correctLetters.includes(letter))
+        userLetters.every((letter) => correctLetters.includes(letter)) &&
+        correctLetters.every((letter) => userLetters.includes(letter))
       );
     }
+
+    // For single choice questions
+    return userLetters[0] === correctLetters[0];
   };
 
   const handlePrevious = () => {
@@ -393,7 +409,7 @@ function ExamContent() {
                   <SelectValue placeholder="Select exam" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[200px] overflow-y-auto">
-                  {Array.from({ length: 23 }, (_, i) => (
+                  {Array.from({ length: 12 }, (_, i) => (
                     <SelectItem key={i + 1} value={(i + 1).toString()}>
                       Practice Exam {i + 1}
                     </SelectItem>
