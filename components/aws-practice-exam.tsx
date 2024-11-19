@@ -38,7 +38,7 @@ const Footer = () => {
     <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-gray-200 backdrop-blur-sm shadow-sm">
       <div className="max-w-4xl mx-auto flex justify-between items-center">
         <span className="text-sm text-gray-600">
-          © {new Date().getFullYear()} AWS Practice Exam
+          © {new Date().getFullYear()} Anuj Sachan
         </span>
         <div className="flex items-center gap-4">
           {/* Buy Me a Coffee button */}
@@ -174,6 +174,21 @@ function ExamContent() {
     let currentQuestion: Partial<Question> = {};
     let isCollectingOptions = false;
 
+    // Helper function to clean text
+    const cleanText = (text: string): string => {
+      // Remove HTML tags
+      const withoutHtml = text.replace(/<[^>]*>/g, "");
+      // Decode HTML entities
+      const decoded = withoutHtml
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, " ");
+      return decoded.trim();
+    };
+
     for (const line of lines) {
       // Match question number and text
       const questionMatch = line.match(/^\d+\.\s(.+)/);
@@ -182,7 +197,7 @@ function ExamContent() {
           parsedQuestions.push(currentQuestion as Question);
         }
         currentQuestion = {
-          question: questionMatch[1].trim(),
+          question: cleanText(questionMatch[1]),
           options: [],
           correctAnswers: [],
         };
@@ -193,7 +208,7 @@ function ExamContent() {
       // Match options
       const optionMatch = line.match(/^\s*-\s*([A-E]\..*)/);
       if (isCollectingOptions && optionMatch) {
-        const option = optionMatch[1].trim();
+        const option = cleanText(optionMatch[1]);
         currentQuestion.options?.push(option);
       }
 
@@ -386,7 +401,7 @@ function ExamContent() {
               <div className="space-y-2">
                 <div className="space-y-1">
                   <CardTitle className="text-2xl font-bold text-[#232f3e]">
-                    AWS Practice Exam
+                    AWS Cloud Practitioner Exam Mocks
                   </CardTitle>
                   <p className="text-lg font-semibold text-[#ff9900]">
                     CLF-C02
@@ -409,7 +424,7 @@ function ExamContent() {
                           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                         />
                       </svg>
-                      <span className="font-medium">12 Practice Exams</span>
+                      <span className="font-medium">23 Practice Exams</span>
                     </div>
                     <div className="flex items-center gap-1 text-[#0e9f6e] bg-[#0e9f6e]/10 px-3 py-1 rounded-full">
                       <svg
@@ -444,10 +459,6 @@ function ExamContent() {
                       <span className="font-medium">No Signup Required</span>
                     </div>
                   </div>
-                  {/* Description */}
-                  <p className="text-[#545b64] mt-2">
-                    Prepare for your AWS Certified Cloud Practitioner exam
-                  </p>
                 </div>
               </div>
             </CardHeader>
@@ -476,7 +487,7 @@ function ExamContent() {
                       <SelectValue placeholder="Choose an exam" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 12 }, (_, i) => (
+                      {Array.from({ length: 23 }, (_, i) => (
                         <SelectItem key={i + 1} value={(i + 1).toString()}>
                           Practice Exam {i + 1}
                         </SelectItem>
@@ -484,6 +495,70 @@ function ExamContent() {
                     </SelectContent>
                   </Select>
                 </div>
+                <details className="mt-6 rounded-lg border border-blue-200 overflow-hidden">
+                  <summary className="px-4 py-3 bg-blue-50 cursor-pointer hover:bg-blue-100 transition-colors flex items-center gap-2 text-blue-800 font-medium">
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    Important Information About These Mocks
+                  </summary>
+                  <div className="p-4 bg-blue-50/50 text-sm text-blue-800 space-y-2">
+                    <p>
+                      The scoring for this exam simulation differs from the
+                      actual AWS Certified Cloud Practitioner exam. Here, the
+                      score is calculated based solely on the number of correct
+                      answers divided by the total number of questions. It does
+                      not take into account the domain-based weighting described
+                      in the
+                    </p>
+                    <p className="mt-2">
+                      <a
+                        href="https://d1.awsstatic.com/training-and-certification/docs-cloud-practitioner/AWS-Certified-Cloud-Practitioner_Exam-Guide.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        AWS Certified Cloud Practitioner Exam Guide{" "}
+                      </a>
+                      .
+                    </p>
+                    <p className="mt-2">
+                      Credit: The questions used in this simulation are sourced
+                      from the repository{" "}
+                      <a
+                        href="https://github.com/kananinirav/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        https://github.com/kananinirav/
+                      </a>
+                      .
+                    </p>
+                    <p>
+                      If you identify any incorrect answers, please{" "}
+                      <a
+                        href="https://github.com/kananinirav/AWS-Certified-Cloud-Practitioner-Notes/issues"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline"
+                      >
+                        report them here
+                      </a>
+                      .
+                    </p>
+                  </div>
+                </details>
                 <Button type="submit" className="w-full py-5 text-lg">
                   Start Practice
                 </Button>
@@ -499,7 +574,7 @@ function ExamContent() {
               onClick={resetUserData}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
-              Reset Exam and go to home
+              Reset Exam
             </Button>
           </div>
           <Card className="w-full max-w-4xl mx-auto mt-8">
@@ -517,7 +592,7 @@ function ExamContent() {
               onClick={resetUserData}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
-              Reset Exam and go to home
+              Reset Exam
             </Button>
           </div>
           <Card className="w-full max-w-4xl mx-auto mt-8">
@@ -547,7 +622,7 @@ function ExamContent() {
               onClick={resetUserData}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
-              Reset Exam and go to home
+              Reset Exam
             </Button>
           </div>
           <Card className="w-full max-w-4xl mx-auto mt-8">
@@ -617,7 +692,7 @@ function ExamContent() {
               onClick={resetUserData}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
-              Reset Exam and go to home
+              Reset Exam
             </Button>
           </div>
           {/* Exam Header */}
