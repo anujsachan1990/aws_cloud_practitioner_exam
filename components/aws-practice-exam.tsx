@@ -907,28 +907,28 @@ function ExamContent() {
                   </RadioGroup>
                 )}
               </CardContent>
-              <CardFooter className="flex justify-between border-t pt-6">
-                <div className="flex gap-4">
+              <CardFooter className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0 border-t pt-6">
+                <div className="w-full sm:w-auto">
                   <Button
                     onClick={endExam}
-                    variant="outline"
-                    className="border-2 hover:bg-gray-50"
+                    variant="destructive"
+                    className="w-full sm:w-auto bg-red-600 hover:bg-red-700 transition-colors"
                   >
                     End Exam
                   </Button>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex w-full sm:w-auto gap-4">
                   <Button
                     onClick={handlePrevious}
                     variant="outline"
-                    className="border-2 hover:bg-gray-50"
+                    className="flex-1 sm:flex-none border-2 hover:bg-gray-50"
                     disabled={currentQuestion === 0}
                   >
                     Previous
                   </Button>
                   <Button
                     onClick={handleNext}
-                    className="bg-[#232f3e] hover:bg-[#394759]"
+                    className="flex-1 sm:flex-none bg-[#232f3e] hover:bg-[#394759]"
                   >
                     {currentQuestion < questions.length - 1
                       ? "Next Question"
