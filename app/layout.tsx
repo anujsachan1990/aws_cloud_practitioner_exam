@@ -14,7 +14,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "AWS Certified Cloud Practitioner Exam Mock",
+  title: "AWS Certified Cloud Practitioner",
   description: "AWS Certified Cloud Practitioner Exam Mock",
 };
 

@@ -164,7 +164,13 @@ function ExamContent() {
     setLoading(true);
     try {
       const response = await fetch(
-        `https://api.github.com/repos/anujsachan1990/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`
+        `https://api.github.com/repos/anujsachan1990/AWS-Certified-Cloud-Practitioner-Notes/contents/practice-exam/practice-exam-${examNum}.md`,
+        {
+          headers: {
+            Authorization: `token ${process.env.NEXT_PUBLIC_GITHUB_TOKEN}`,
+            Accept: "application/vnd.github.v3+json",
+          },
+        }
       );
       if (!response.ok) {
         throw new Error("Failed to fetch exam data");
