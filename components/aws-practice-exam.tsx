@@ -484,10 +484,24 @@ function ExamContent() {
     localStorage.setItem("awsExamUserData", JSON.stringify(userData));
   };
 
-  const resetUserData = () => {
+  const resetExam = () => {
+    // Clear local storage
     localStorage.removeItem("awsExamUserData");
+
+    // Reset all states
     setUserName("");
     setIsRegistered(false);
+    setQuestions([]);
+    setCurrentQuestion(0);
+    setUserAnswers([]);
+    setScore(0);
+    setShowResults(false);
+    setTimeLeft(50 * 60);
+    setLoading(true);
+    setError(null);
+
+    // Force a re-render by updating the URL
+    router.push(`?exam=1`);
   };
 
   if (error) {
@@ -692,7 +706,7 @@ function ExamContent() {
           <div className="flex justify-end max-w-4xl mx-auto mb-4 px-4">
             <Button
               variant="destructive"
-              onClick={resetUserData}
+              onClick={resetExam}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
               Reset Exam
@@ -710,7 +724,7 @@ function ExamContent() {
           <div className="flex justify-end max-w-4xl mx-auto mb-4 px-4">
             <Button
               variant="destructive"
-              onClick={resetUserData}
+              onClick={resetExam}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
               Reset Exam
@@ -740,13 +754,13 @@ function ExamContent() {
             </Button>
             <Button
               variant="destructive"
-              onClick={resetUserData}
+              onClick={resetExam}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
               Reset Exam
             </Button>
           </div>
-          <Card className="w-full max-w-4xl mx-auto mt-8 mb-20">
+          <Card className="w-full max-w-4xl mx-4 sm:mx-auto mt-8 mb-20">
             <CardHeader>
               <CardTitle>Exam Results</CardTitle>
             </CardHeader>
@@ -810,7 +824,7 @@ function ExamContent() {
             </div>
             <Button
               variant="destructive"
-              onClick={resetUserData}
+              onClick={resetExam}
               className="px-6 py-2 font-semibold shadow-md hover:shadow-lg transition-all duration-200 bg-red-600 hover:bg-red-700"
             >
               Reset Exam
@@ -832,7 +846,7 @@ function ExamContent() {
           </div>
 
           {/* Exam Card */}
-          <Card className="w-full max-w-4xl mx-auto mt-4 shadow-lg">
+          <Card className="w-full max-w-4xl mx-4 sm:mx-auto mt-4 shadow-lg">
             <CardHeader className="flex flex-row items-center justify-between border-b">
               <CardTitle className="text-[#232f3e]">
                 Question {currentQuestion + 1} of {questions.length}
