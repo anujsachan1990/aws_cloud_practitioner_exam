@@ -37,9 +37,32 @@ const Footer = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 border-t border-gray-200 backdrop-blur-sm shadow-sm">
       <div className="max-w-4xl mx-auto flex justify-between items-center">
-        <span className="text-sm text-gray-600">
-          © {new Date().getFullYear()} Anuj Sachan
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600">
+            © {new Date().getFullYear()} Anuj Sachan
+          </span>
+          <span className="text-sm text-gray-400">|</span>
+          <span className="text-sm text-gray-600">
+            Built using{" "}
+            <a
+              href="https://v0.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              V0
+            </a>{" "}
+            and{" "}
+            <a
+              href="https://cursor.sh"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              Cursor
+            </a>
+          </span>
+        </div>
         <div className="flex items-center gap-4">
           {/* Buy Me a Coffee button */}
           <a
