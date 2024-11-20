@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Analytics } from "@vercel/analytics/next";
 
 interface Question {
   question: string;
@@ -30,6 +31,11 @@ interface Question {
 }
 
 interface UserData {
+  name: string;
+}
+
+// Define a type for the properties you want to track
+interface AnalyticsProperties {
   name: string;
 }
 
@@ -491,6 +497,15 @@ function ExamContent() {
     };
     localStorage.setItem("awsExamUserData", JSON.stringify(userData));
     setIsRegistered(true);
+
+    // Track the user's name with Analytics
+    if (typeof window !== "undefined" && window.analytics) {
+      // Ensure this runs in the browser and analytics is defined
+      const properties: AnalyticsProperties = {
+        name: userName,
+      };
+      window.analytics.track("User Registered", properties);
+    }
   };
 
   const saveAttempt = () => {
@@ -956,6 +971,7 @@ function ExamContent() {
           </>
         )}
         <Footer />
+        <Analytics />
       </div>
     </div>
   );
